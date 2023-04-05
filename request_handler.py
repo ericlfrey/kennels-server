@@ -74,10 +74,10 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Handles customers requests
         if resource == "customers":
             if id is not None:
-                response = get_single_employee(id)
+                response = get_single_customer(id)
 
             else:
-                response = get_all_employees()
+                response = get_all_customers()
 
         self.wfile.write(json.dumps(response).encode())
 
