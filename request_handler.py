@@ -1,6 +1,23 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_animals, get_single_animal, get_single_location, get_all_locations, get_all_customers, get_single_customer,  get_all_employees, get_single_employee, create_animal, create_location, create_employee, create_customer
+from views import (
+    get_all_animals,
+    get_single_animal,
+    create_animal,
+    delete_animal,
+    get_all_locations,
+    get_single_location,
+    create_location,
+    delete_location,
+    get_all_customers,
+    get_single_customer,
+    create_customer,
+    delete_customer,
+    get_all_employees,
+    get_single_employee,
+    create_employee,
+    delete_employee
+)
 
 
 # Here's a class. It inherits from another class.
@@ -55,6 +72,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
             else:
                 response = get_all_animals()
+
         # Handles locations requests
         if resource == "locations":
             if id is not None:
@@ -127,6 +145,27 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_PUT(self):
         """Handles PUT requests to the server"""
         self.do_PUT()
+
+    def do_DELETE(self):
+        """Handles DELETE requests to server"""
+        # set a 204 response code
+        self._set_headers(204)
+
+        # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Delete a single animal from the list
+        if resource == "animals":
+            delete_animal(id)
+        if resource == "locations":
+            delete_location(id)
+        if resource == "employees":
+            delete_employee(id)
+        if resource == "customers":
+            delete_customer(id)
+
+        # Encode the new animal and send in a response
+        self.wfile.write("".encode())
 
     def _set_headers(self, status):
         # Notice this Docstring also includes information about the arguments passed to the function
