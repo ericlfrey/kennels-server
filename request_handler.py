@@ -108,24 +108,19 @@ class HandleRequests(BaseHTTPRequestHandler):
         # function next.
         if resource == "animals":
             new_animal = create_animal(post_body)
-
-        # Encode the new animal and send in response
-        self.wfile.write(json.dumps(new_animal).encode())
+            self.wfile.write(json.dumps(new_animal).encode())
 
         if resource == "locations":
             new_location = create_location(post_body)
-
-        self.wfile.write(json.dumps(new_location).encode())
+            self.wfile.write(json.dumps(new_location).encode())
 
         if resource == "employees":
             new_employee = create_employee(post_body)
-
-        self.wfile.write(json.dumps(new_employee).encode())
+            self.wfile.write(json.dumps(new_employee).encode())
 
         if resource == "customers":
             new_customer = create_customer(post_body)
-
-        self.wfile.write(json.dumps(new_customer).encode())
+            self.wfile.write(json.dumps(new_customer).encode())
 
     # A method that handles any PUT request.
 
