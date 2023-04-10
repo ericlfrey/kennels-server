@@ -74,6 +74,12 @@ class HandleRequests(BaseHTTPRequestHandler):
             if id is not None:
                 response = get_single_animal(id)
 
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = "Uh oh, something went wrong."
+
             else:
                 response = get_all_animals()
 
