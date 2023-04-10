@@ -115,7 +115,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         """Handles POST requests to the server"""
 
         # Set response code to 'Created'
-        self._set_headers(201)
+        # self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -135,19 +135,47 @@ class HandleRequests(BaseHTTPRequestHandler):
         # the orange squiggle, you'll define the create_animal
         # function next.
         if resource == "animals":
-            new_animal = create_animal(post_body)
+            if all(["name", "species", "status", "locationId", "customerId"]) in post_body:
+                self._set_headers(201)
+                new_animal = create_animal(post_body)
+            else:
+                self._set_headers(400)
+                new_animal = {
+                    "message": f"{'name is required' if 'name' not in post_body else ''}{'species is required' if 'species' not in post_body else ''}{'status is required' if 'status' not in post_body else ''} {'locationId is required' if 'locationId' not in post_body else ''}{'customerId is required' if 'customerId' not in post_body else ''}"
+                }
             self.wfile.write(json.dumps(new_animal).encode())
 
         if resource == "locations":
-            new_location = create_location(post_body)
+            if all(["name", "address"]) in post_body:
+                self._set_headers(201)
+                new_location = create_location(post_body)
+            else:
+                self._set_headers(400)
+                new_location = {
+                    "message": f"{'name is required' if 'name' not in post_body else ''}{'address is required' if 'address' not in post_body else ''}"
+                }
             self.wfile.write(json.dumps(new_location).encode())
 
         if resource == "employees":
-            new_employee = create_employee(post_body)
+            if "name" in post_body:
+                self._set_headers(201)
+                new_employee = create_employee(post_body)
+            else:
+                self._set_headers(400)
+                new_employee = {
+                    "message": f"{'name is required' if 'name' not in post_body else ''}"
+                }
             self.wfile.write(json.dumps(new_employee).encode())
 
         if resource == "customers":
-            new_customer = create_customer(post_body)
+            if "name" in post_body:
+                self._set_headers(201)
+                new_customer = create_customer(post_body)
+            else:
+                self._set_headers(400)
+                new_customer = {
+                    "message": f"{'name is required' if 'name' not in post_body else ''}"
+                }
             self.wfile.write(json.dumps(new_customer).encode())
 
     # A method that handles any PUT request.
