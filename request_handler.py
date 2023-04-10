@@ -19,7 +19,7 @@ from views import (
     get_all_customers,
     get_single_customer,
     create_customer,
-    delete_customer,
+    # delete_customer,
     update_customer
 )
 
@@ -87,7 +87,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "locations":
             if id is not None:
                 response = get_single_location(id)
-
             else:
                 response = get_all_locations()
 
@@ -95,7 +94,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "employees":
             if id is not None:
                 response = get_single_employee(id)
-
             else:
                 response = get_all_employees()
 
@@ -103,7 +101,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "customers":
             if id is not None:
                 response = get_single_customer(id)
-
             else:
                 response = get_all_customers()
 
@@ -205,24 +202,31 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         """Handles DELETE requests to server"""
-        # set a 204 response code
-        self._set_headers(204)
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
         # Delete a single animal from the list
         if resource == "animals":
+            self._set_headers(204)
             delete_animal(id)
-        if resource == "locations":
+            self.wfile.write("".encode())
+        elif resource == "locations":
+            self._set_headers(204)
             delete_location(id)
-        if resource == "employees":
+            self.wfile.write("".encode())
+        elif resource == "employees":
+            self._set_headers(204)
             delete_employee(id)
-        if resource == "customers":
-            delete_customer(id)
-
+            self.wfile.write("".encode())
         # Encode the new animal and send in a response
-        self.wfile.write("".encode())
+
+        if resource == "customers":
+            self._set_headers(405)
+            error_message = {
+                "message": "Deleting the customers requires contacting the company directly."
+            }
+            self.wfile.write(json.dumps(error_message).encode())
 
     def _set_headers(self, status):
         # Notice this Docstring also includes information about the arguments passed to the function
