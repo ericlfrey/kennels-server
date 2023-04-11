@@ -23,28 +23,36 @@ from views import (
     update_customer
 )
 
+method_mapper = {
+    "animals": {
+        "all": get_all_animals,
+        "single": get_single_animal
+    },
+    "locations": {
+        "all": get_all_locations,
+        "single": get_single_location
+    },
+    "employees": {
+        "all": get_all_employees,
+        "single": get_single_employee
+    },
+    "customers": {
+        "all": get_all_customers,
+        "single": get_single_customer
+    }
+}
 
-# Here's a class. It inherits from another class.
-# For now, think of a class as a container for functions that
-# work together for a common purpose. In this case, that
-# common purpose is to respond to HTTP requests from a client.
+
 class HandleRequests(BaseHTTPRequestHandler):
-    # This is a Docstring it should be at the beginning of all classes and functions
-    # It gives a description of the class or function
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
 
     def parse_url(self, path):
         """This function splits the client path string into parts to isolate the requested id"""
-        # Just like splitting a string in JavaScript. If the
-        # path is "/animals/1", the resulting list will
-        # have "" at index 0, "animals" at index 1, and "1"
-        # at index 2.
         path_params = path.split("/")
         resource = path_params[1]
         id = None
 
-        # Try to get the item at index 2
         try:
             # Convert the string "1" to the integer 1
             # This is the new parseInt()
@@ -56,53 +64,31 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         return (resource, id)  # This is a tuple
 
+    def get_all_or_single(self, resource, id):
+        """Reusable Function"""
+        if id is not None:
+            response = method_mapper[resource]["single"](id)
+
+            if response is not None:
+                self._set_headers(200)
+            else:
+                self._set_headers(404)
+                response = ''
+        else:
+            self._set_headers(200)
+            response = method_mapper[resource]["all"]()
+
+        return response
+
     # Here's a class function
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any GET request.
     def do_GET(self):
         """Handles GET requests to the server"""
-        # Set the response code to 'Ok'
-        self._set_headers(200)
-        response = {}  # Default response
-
-        # Parse the URL and capture the tuple that is returned
+        response = None
         (resource, id) = self.parse_url(self.path)
-        # Handles animals requests
-        if resource == "animals":
-            if id is not None:
-                response = get_single_animal(id)
-
-                if response is not None:
-                    self._set_headers(200)
-                else:
-                    self._set_headers(404)
-                    response = "Uh oh, something went wrong."
-
-            else:
-                response = get_all_animals()
-
-        # Handles locations requests
-        if resource == "locations":
-            if id is not None:
-                response = get_single_location(id)
-            else:
-                response = get_all_locations()
-
-        # Handles employees requests
-        if resource == "employees":
-            if id is not None:
-                response = get_single_employee(id)
-            else:
-                response = get_all_employees()
-
-        # Handles customers requests
-        if resource == "customers":
-            if id is not None:
-                response = get_single_customer(id)
-            else:
-                response = get_all_customers()
-
+        response = self.get_all_or_single(resource, id)
         self.wfile.write(json.dumps(response).encode())
 
     # Here's a method on the class that overrides the parent's method.
