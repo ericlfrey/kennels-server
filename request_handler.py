@@ -1,46 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import (
-    get_all_animals,
-    get_single_animal,
-    create_animal,
-    delete_animal,
-    update_animal,
-    get_all_locations,
-    get_single_location,
-    create_location,
-    delete_location,
-    update_location,
-    get_all_employees,
-    get_single_employee,
-    create_employee,
-    delete_employee,
-    update_employee,
-    get_all_customers,
-    get_single_customer,
-    create_customer,
-    # delete_customer,
-    update_customer
-)
-
-method_mapper = {
-    "animals": {
-        "all": get_all_animals,
-        "single": get_single_animal
-    },
-    "locations": {
-        "all": get_all_locations,
-        "single": get_single_location
-    },
-    "employees": {
-        "all": get_all_employees,
-        "single": get_single_employee
-    },
-    "customers": {
-        "all": get_all_customers,
-        "single": get_single_customer
-    }
-}
+from repository import (get_all, retrieve, update, delete, create)
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -54,8 +14,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         id = None
 
         try:
-            # Convert the string "1" to the integer 1
-            # This is the new parseInt()
             id = int(path_params[2])
         except IndexError:
             pass  # No route parameter exists: /animals
@@ -65,10 +23,9 @@ class HandleRequests(BaseHTTPRequestHandler):
         return (resource, id)  # This is a tuple
 
     def get_all_or_single(self, resource, id):
-        """Reusable Function"""
+        """Tests whether to get All items, or get Single item"""
         if id is not None:
-            response = method_mapper[resource]["single"](id)
-
+            response = retrieve(resource, id)
             if response is not None:
                 self._set_headers(200)
             else:
@@ -76,14 +33,10 @@ class HandleRequests(BaseHTTPRequestHandler):
                 response = ''
         else:
             self._set_headers(200)
-            response = method_mapper[resource]["all"]()
+            response = get_all(resource)
 
         return response
 
-    # Here's a class function
-
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any GET request.
     def do_GET(self):
         """Handles GET requests to the server"""
         response = None
@@ -91,77 +44,36 @@ class HandleRequests(BaseHTTPRequestHandler):
         response = self.get_all_or_single(resource, id)
         self.wfile.write(json.dumps(response).encode())
 
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any POST request.
     def do_POST(self):
         """Handles POST requests to the server"""
 
-        # Set response code to 'Created'
-        # self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
-
-        # Convert JSON string to a Python dictionary
         post_body = json.loads(post_body)
-
-        # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Initialize new object - dictionary?
-        new_animal = None
-        new_location = None
-        new_employee = None
-        new_customer = None
+        new_dict = None
+        required_attributes_list_mapper = {
+            "animals": ["name", "species",
+                        "status", "locationId", "customerId"],
+            "locations": ["name", "address"],
+            "employees": ["name"],
+            "customers": ["name"]
+        }
 
-        # Add a new animal to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
-        if resource == "animals":
-            animals_list = ["name", "species",
-                            "status", "locationId", "customerId"]
-            if all(animals_list_item in post_body for animals_list_item in animals_list):
-                self._set_headers(201)
-                new_animal = create_animal(post_body)
-            else:
-                self._set_headers(400)
-                new_animal = {
-                    "message": f"{'name is required' if 'name' not in post_body else ''}{'species is required' if 'species' not in post_body else ''}{'status is required' if 'status' not in post_body else ''} {'locationId is required' if 'locationId' not in post_body else ''}{'customerId is required' if 'customerId' not in post_body else ''}"
-                }
-            self.wfile.write(json.dumps(new_animal).encode())
-
-        if resource == "locations":
-            locations_list = ["name", "address"]
-            if all(locations_list_item in post_body for locations_list_item in locations_list):
-                self._set_headers(201)
-                new_location = create_location(post_body)
-            else:
-                self._set_headers(400)
-                new_location = {
-                    "message": f"{'name is required' if 'name' not in post_body else ''}{'address is required' if 'address' not in post_body else ''}"
-                }
-            self.wfile.write(json.dumps(new_location).encode())
-
-        if resource == "employees":
-            if "name" in post_body:
-                self._set_headers(201)
-                new_employee = create_employee(post_body)
-            else:
-                self._set_headers(400)
-                new_employee = {
-                    "message": f"{'name is required' if 'name' not in post_body else ''}"
-                }
-            self.wfile.write(json.dumps(new_employee).encode())
-
-        if resource == "customers":
-            if "name" in post_body:
-                self._set_headers(201)
-                new_customer = create_customer(post_body)
-            else:
-                self._set_headers(400)
-                new_customer = {
-                    "message": f"{'name is required' if 'name' not in post_body else ''}"
-                }
-            self.wfile.write(json.dumps(new_customer).encode())
+        if all(key_item in post_body for key_item in required_attributes_list_mapper[resource]):
+            self._set_headers(201)
+            new_dict = create(post_body, resource)
+        else:
+            key_list = ([key_item for key_item in
+                        required_attributes_list_mapper[resource]
+                        if key_item not in post_body])
+            key_string = ', '.join([str(item) for item in key_list])
+            self._set_headers(400)
+            new_dict = {
+                "message": f"{key_string} is required"
+            }
+        self.wfile.write(json.dumps(new_dict).encode())
 
     # A method that handles any PUT request.
 
@@ -171,43 +83,13 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
-
-        # Parse the URL
         (resource, id) = self.parse_url(self.path)
-
-        # Update a single animal in the list
-        if resource == "animals":
-            update_animal(id, post_body)
-        if resource == "locations":
-            update_location(id, post_body)
-        if resource == "employees":
-            update_employee(id, post_body)
-        if resource == "customers":
-            update_customer(id, post_body)
-
-        # Encode the animal and send in response
+        update(id, post_body, resource)
         self.wfile.write("".encode())
 
     def do_DELETE(self):
         """Handles DELETE requests to server"""
-
-        # Parse the URL
         (resource, id) = self.parse_url(self.path)
-
-        # Delete a single animal from the list
-        if resource == "animals":
-            self._set_headers(204)
-            delete_animal(id)
-            self.wfile.write("".encode())
-        elif resource == "locations":
-            self._set_headers(204)
-            delete_location(id)
-            self.wfile.write("".encode())
-        elif resource == "employees":
-            self._set_headers(204)
-            delete_employee(id)
-            self.wfile.write("".encode())
-        # Encode the new animal and send in a response
 
         if resource == "customers":
             self._set_headers(405)
@@ -215,6 +97,10 @@ class HandleRequests(BaseHTTPRequestHandler):
                 "message": "Deleting the customers requires contacting the company directly."
             }
             self.wfile.write(json.dumps(error_message).encode())
+        else:
+            self._set_headers(204)
+            delete(resource, id)
+            self.wfile.write("".encode())
 
     def _set_headers(self, status):
         # Notice this Docstring also includes information about the arguments passed to the function
