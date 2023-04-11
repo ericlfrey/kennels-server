@@ -61,8 +61,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     # Here's a method on the class that overrides the parent's method.
     # It handles any GET request.
     def do_GET(self):
-        """Handles GET requests to the server
-        """
+        """Handles GET requests to the server"""
         # Set the response code to 'Ok'
         self._set_headers(200)
         response = {}  # Default response
@@ -132,7 +131,9 @@ class HandleRequests(BaseHTTPRequestHandler):
         # the orange squiggle, you'll define the create_animal
         # function next.
         if resource == "animals":
-            if all(["name", "species", "status", "locationId", "customerId"]) in post_body:
+            animals_list = ["name", "species",
+                            "status", "locationId", "customerId"]
+            if all(animals_list_item in post_body for animals_list_item in animals_list):
                 self._set_headers(201)
                 new_animal = create_animal(post_body)
             else:
@@ -143,7 +144,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(new_animal).encode())
 
         if resource == "locations":
-            if all(["name", "address"]) in post_body:
+            locations_list = ["name", "address"]
+            if all(locations_list_item in post_body for locations_list_item in locations_list):
                 self._set_headers(201)
                 new_location = create_location(post_body)
             else:
