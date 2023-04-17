@@ -46,8 +46,8 @@ def get_all_animals():
             a.name,
             a.breed,
             a.status,
-            a.location_id,
             a.customer_id,
+            a.location_id,
             l.name location_name,
             l.address location_address,
             c.name customer_name,
@@ -78,7 +78,7 @@ def get_all_animals():
 
             # Create an animal instance from the current row
             animal = Animal(row['id'], row['name'], row['breed'], row['status'],
-                            row['location_id'], row['customer_id'])
+                            row['customer_id'], row['location_id'])
 
             # Create a Location instance from the current row
             location = Location(
@@ -120,8 +120,8 @@ def get_single_animal(id):
             a.name,
             a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.customer_id,
+            a.location_id
         FROM animal a
         WHERE a.id = ?
         """, (id, ))
@@ -131,8 +131,8 @@ def get_single_animal(id):
 
         # Create an animal instance from the current row
         animal = Animal(data['id'], data['name'], data['breed'],
-                        data['status'], data['location_id'],
-                        data['customer_id'])
+                        data['status'], data['customer_id'], data['location_id']
+                        )
 
         return animal.__dict__
     # # Variable to hold the found animal, if it exists
@@ -162,8 +162,8 @@ def get_animals_by_location(location_id):
             a.name,
             a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.customer_id,
+            a.location_id
         from Animal a
         WHERE a.location_id = ?
         """, (location_id, ))
@@ -173,7 +173,7 @@ def get_animals_by_location(location_id):
 
         for row in dataset:
             animal = Animal(
-                row['id'], row['name'], row['breed'], row['status'], row['location_id'], row['customer_id'])
+                row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
             animals.append(animal.__dict__)
 
     return animals
@@ -192,8 +192,8 @@ def get_animals_by_status(status):
             a.name,
             a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.customer_id,
+            a.location_id
         from Animal a
         WHERE a.status = ?
         """, (status, ))
@@ -203,28 +203,51 @@ def get_animals_by_status(status):
 
         for row in dataset:
             animal = Animal(
-                row['id'], row['name'], row['breed'], row['status'], row['location_id'], row['customer_id'])
+                row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
             animals.append(animal.__dict__)
 
     return animals
 
 
-def create_animal(animal):
+def create_animal(new_animal):
     """Creates a new animal"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Animal
+            ( name, breed, status, customer_id, location_id )
+        VALUES
+            ( ?, ?, ?, ?, ?);
+        """, (new_animal['name'], new_animal['breed'],
+              new_animal['status'], new_animal['customerId'], new_animal['locationId'], ))
+
+        # The `lastrowid` property on the cursor will return
+        # the primary key of the last thing that got added to
+        # the database.
+        id = db_cursor.lastrowid
+
+        # Add the `id` property to the animal dictionary that
+        # was sent by the client so that the client sees the
+        # primary key in the response.
+        new_animal['id'] = id
+
+    return new_animal
+
     # Get the id value of the last animal in the list
-    max_id = ANIMALS[-1]["id"]
+    # max_id = ANIMALS[-1]["id"]
 
-    # Add 1 to whatever that number is
-    new_id = max_id + 1
+    # # Add 1 to whatever that number is
+    # new_id = max_id + 1
 
-    # Add an `id` property to the animal dictionary
-    animal["id"] = new_id
+    # # Add an `id` property to the animal dictionary
+    # animal["id"] = new_id
 
-    # Add the animal dictionary to the list
-    ANIMALS.append(animal)
+    # # Add the animal dictionary to the list
+    # ANIMALS.append(animal)
 
-    # Return the dictionary with `id` property added
-    return animal
+    # # Return the dictionary with `id` property added
+    # return animal
 
 
 def delete_animal(id):
@@ -263,12 +286,11 @@ def update_animal(id, new_animal):
                 name = ?,
                 breed = ?,
                 status = ?,
-                location_id = ?,
-                customer_id = ?
+                customer_id = ?,
+                location_id = ?
         WHERE id = ?
         """, (new_animal['name'], new_animal['breed'],
-              new_animal['status'], new_animal['location_id'],
-              new_animal['customer_id'], id, ))
+              new_animal['status'], new_animal['customer_id'], new_animal['location_id'], id, ))
 
         # Were any rows affected?
         # Did the client send an `id` that exists?
