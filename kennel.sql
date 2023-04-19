@@ -88,3 +88,18 @@ JOIN Location l
     ON l.id = a.location_id
 
 SELECT * FROM Animal ORDER BY id DESC;
+
+SELECT
+            l.id,
+            l.name,
+            l.address,
+            e.name,
+            e.location_id employee_location,
+            a.name animal_name,
+            a.location_id animal_location
+        FROM location l
+        JOIN employee e
+            ON e.location_id = l.id
+        JOIN animal a
+            ON a.location_id = l.id
+        WHERE l.id = 1

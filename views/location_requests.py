@@ -1,6 +1,8 @@
 import sqlite3
-import json
+# import json
 from models import Location
+from .employee_requests import get_employees_by_location
+from .animal_requests import get_animals_by_location
 
 LOCATIONS = [
     {
@@ -53,16 +55,22 @@ def get_single_location(id):
 
         db_cursor.execute("""
         SELECT
-            a.id,
-            a.name,
-            a.address
-        FROM location a
-        WHERE a.id = ?
+            l.id,
+            l.name,
+            l.address
+        FROM location l
+        WHERE l.id = ?
         """, (id, ))
 
         data = db_cursor.fetchone()
 
         location = Location(data['id'], data['name'], data['address'])
+
+        employees = get_employees_by_location(id)
+        animals = get_animals_by_location(id)
+
+        location.employees = employees
+        location.animals = animals
 
         return location.__dict__
 

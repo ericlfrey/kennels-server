@@ -1,33 +1,6 @@
 import sqlite3
-import json
+# import json
 from models import Animal, Location, Customer
-
-ANIMALS = [
-    {
-        "id": 1,
-        "name": "Snickers",
-        "species": "Dog",
-        "locationId": 1,
-        "customerId": 4,
-        "status": "Admitted"
-    },
-    {
-        "id": 2,
-        "name": "Roman",
-        "species": "Dog",
-        "locationId": 1,
-        "customerId": 2,
-        "status": "Admitted"
-    },
-    {
-        "id": 3,
-        "name": "Blue",
-        "species": "Cat",
-        "locationId": 2,
-        "customerId": 1,
-        "status": "Admitted"
-    }
-]
 
 
 def get_all_animals():
@@ -60,12 +33,6 @@ def get_all_animals():
         JOIN Customer c
             ON c.id = a.customer_id
         """)
-        # c.name customer_name
-        #     c.address customer_address
-        #     c.email customer_email
-        #     c.password customer_password
-        # JOIN Customer c
-        #     ON c.id = a. customer_id
 
         # Initialize an empty list to hold all animal representations
         animals = []
@@ -77,21 +44,29 @@ def get_all_animals():
         for row in dataset:
 
             # Create an animal instance from the current row
-            animal = Animal(row['id'], row['name'], row['breed'], row['status'],
-                            row['customer_id'], row['location_id'])
+            animal = Animal(
+                row['id'],
+                row['name'],
+                row['breed'],
+                row['status'],
+                row['customer_id'],
+                row['location_id']
+            )
 
             # Create a Location instance from the current row
             location = Location(
-                row['id'], row['location_name'], row['location_address'])
+                row['location_id'],
+                row['location_name'],
+                row['location_address']
+            )
             # Create a Customer instance from the current row
             customer = Customer(
-                row['id'], row['customer_name'], row['customer_address'], row['customer_email'], row['customer_password'])
-
-        #     self.id = id
-        # self.name = name
-        # self.address = address
-        # self.email = email
-        # self.password = password
+                row['customer_id'],
+                row['customer_name'],
+                row['customer_address'],
+                row['customer_email'],
+                row['customer_password']
+            )
 
             # Add the dictionary representation of the location to the animal
             animal.location = location.__dict__
@@ -121,8 +96,18 @@ def get_single_animal(id):
             a.breed,
             a.status,
             a.customer_id,
-            a.location_id
-        FROM animal a
+            a.location_id,
+            l.name location_name,
+            l.address location_address,
+            c.name customer_name,
+            c.address customer_address,
+            c.email customer_email,
+            c.password customer_password
+        FROM Animal a
+        JOIN Location l
+            ON l.id = a.location_id
+        JOIN Customer c
+            ON c.id = a.customer_id
         WHERE a.id = ?
         """, (id, ))
 
@@ -130,23 +115,32 @@ def get_single_animal(id):
         data = db_cursor.fetchone()
 
         # Create an animal instance from the current row
-        animal = Animal(data['id'], data['name'], data['breed'],
-                        data['status'], data['customer_id'], data['location_id']
-                        )
+        animal = Animal(
+            data['id'],
+            data['name'],
+            data['breed'],
+            data['status'],
+            data['customer_id'],
+            data['location_id']
+        )
+        location = Location(
+            data['location_id'],
+            data['location_name'],
+            data['location_address']
+        )
+
+        customer = Customer(
+            data['customer_id'],
+            data['customer_name'],
+            data['customer_address'],
+            data['customer_email'],
+            data['customer_password']
+        )
+
+        animal.location = location.__dict__
+        animal.customer = customer.__dict__
 
         return animal.__dict__
-    # # Variable to hold the found animal, if it exists
-    # requested_animal = None
-
-    # # Iterate the ANIMALS list above. Very similar to the
-    # # for..of loops you used in JavaScript.
-    # for animal in ANIMALS:
-    #     # Dictionaries in Python use [] notation to find a key
-    #     # instead of the dot notation that JavaScript used.
-    #     if animal["id"] == id:
-    #         requested_animal = animal
-
-    # return requested_animal
 
 
 def get_animals_by_location(location_id):
@@ -173,7 +167,13 @@ def get_animals_by_location(location_id):
 
         for row in dataset:
             animal = Animal(
-                row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
+                row['id'],
+                row['name'],
+                row['breed'],
+                row['status'],
+                row['customer_id'],
+                row['location_id']
+            )
             animals.append(animal.__dict__)
 
     return animals
@@ -203,7 +203,13 @@ def get_animals_by_status(status):
 
         for row in dataset:
             animal = Animal(
-                row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
+                row['id'],
+                row['name'],
+                row['breed'],
+                row['status'],
+                row['customer_id'],
+                row['location_id']
+            )
             animals.append(animal.__dict__)
 
     return animals
@@ -219,8 +225,12 @@ def create_animal(new_animal):
             ( name, breed, status, customer_id, location_id )
         VALUES
             ( ?, ?, ?, ?, ?);
-        """, (new_animal['name'], new_animal['breed'],
-              new_animal['status'], new_animal['customerId'], new_animal['locationId'], ))
+        """, (
+            new_animal['name'],
+            new_animal['breed'],
+            new_animal['status'],
+            new_animal['customer_id'],
+            new_animal['location_id'], ))
 
         # The `lastrowid` property on the cursor will return
         # the primary key of the last thing that got added to
@@ -234,21 +244,6 @@ def create_animal(new_animal):
 
     return new_animal
 
-    # Get the id value of the last animal in the list
-    # max_id = ANIMALS[-1]["id"]
-
-    # # Add 1 to whatever that number is
-    # new_id = max_id + 1
-
-    # # Add an `id` property to the animal dictionary
-    # animal["id"] = new_id
-
-    # # Add the animal dictionary to the list
-    # ANIMALS.append(animal)
-
-    # # Return the dictionary with `id` property added
-    # return animal
-
 
 def delete_animal(id):
     """Deletes single animal"""
@@ -259,20 +254,6 @@ def delete_animal(id):
         DELETE FROM animal
         WHERE id = ?
         """, (id, ))
-
-    # # Initial -1 value for animal index, in case one isn't found
-    # animal_index = -1
-
-    # # Iterate the ANIMALS list, but use enumerate() so that you
-    # # can access the index value of each item
-    # for index, animal in enumerate(ANIMALS):
-    #     if animal["id"] == id:
-    #         # Found the animal. Store the current index.
-    #         animal_index = index
-
-    # # If the animal was found, use pop(int) to remove it from list
-    # if animal_index >= 0:
-    #     ANIMALS.pop(animal_index)
 
 
 def update_animal(id, new_animal):
@@ -289,8 +270,12 @@ def update_animal(id, new_animal):
                 customer_id = ?,
                 location_id = ?
         WHERE id = ?
-        """, (new_animal['name'], new_animal['breed'],
-              new_animal['status'], new_animal['customer_id'], new_animal['location_id'], id, ))
+        """, (
+            new_animal['name'],
+            new_animal['breed'],
+            new_animal['status'],
+            new_animal['customer_id'],
+            new_animal['location_id'], id, ))
 
         # Were any rows affected?
         # Did the client send an `id` that exists?
