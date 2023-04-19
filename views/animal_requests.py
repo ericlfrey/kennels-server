@@ -179,6 +179,42 @@ def get_animals_by_location(location_id):
     return animals
 
 
+def get_animals_by_search_term(search_term):
+    """gets animals by their location ID"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            a.id,
+            a.name,
+            a.breed,
+            a.status,
+            a.customer_id,
+            a.location_id
+        from Animal a
+        WHERE a.name LIKE ?
+        """, (f"%{search_term}%", ))
+
+        animals = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            animal = Animal(
+                row['id'],
+                row['name'],
+                row['breed'],
+                row['status'],
+                row['customer_id'],
+                row['location_id']
+            )
+            animals.append(animal.__dict__)
+
+    return animals
+
+
 def get_animals_by_status(status):
     """gets animals by their status"""
     with sqlite3.connect("./kennel.sqlite3") as conn:

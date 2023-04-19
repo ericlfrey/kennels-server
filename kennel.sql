@@ -103,3 +103,13 @@ SELECT
         JOIN animal a
             ON a.location_id = l.id
         WHERE l.id = 1
+
+        select
+            a.id,
+            a.name,
+            a.breed,
+            a.status,
+            a.customer_id,
+            a.location_id
+        from Animal a
+        WHERE a.name LIKE '%pearl%'
