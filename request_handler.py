@@ -6,6 +6,7 @@ from views import (
     get_single_animal,
     get_animals_by_location,
     get_animals_by_status,
+    get_animals_by_search_term,
     create_animal,
     delete_animal,
     update_animal,
@@ -107,7 +108,8 @@ class HandleRequests(BaseHTTPRequestHandler):
                 response = get_employees_by_location(query['location_id'][0])
             elif query.get('status') and resource == 'animals':
                 response = get_animals_by_status(query['status'][0])
-
+            elif query.get('search') and resource == 'animals':
+                response = get_animals_by_search_term(query['search'][0])
         self.wfile.write(json.dumps(response).encode())
 
     # Here's a method on the class that overrides the parent's method.
@@ -222,10 +224,14 @@ class HandleRequests(BaseHTTPRequestHandler):
         """
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods',
-                         'GET, POST, PUT, DELETE')
-        self.send_header('Access-Control-Allow-Headers',
-                         'X-Requested-With, Content-Type, Accept')
+        self.send_header(
+            'Access-Control-Allow-Methods',
+            'GET, POST, PUT, DELETE'
+        )
+        self.send_header(
+            'Access-Control-Allow-Headers',
+            'X-Requested-With, Content-Type, Accept'
+        )
         self.end_headers()
 
 

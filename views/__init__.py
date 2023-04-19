@@ -5,7 +5,8 @@ from .animal_requests import (
     delete_animal,
     update_animal,
     get_animals_by_location,
-    get_animals_by_status
+    get_animals_by_status,
+    get_animals_by_search_term
 )
 from .location_requests import (
     get_all_locations,
