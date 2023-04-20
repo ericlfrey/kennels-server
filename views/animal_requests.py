@@ -24,6 +24,8 @@ def get_all_animals(query_params):
                     sort_by = " ORDER BY location_id"
                 elif qs_value == 'customer':
                     sort_by = " ORDER BY customer_id"
+                elif qs_value == 'status':
+                    sort_by = " ORDER BY status"
 
             if qs_key == "location_id":
                 where_clause = f"WHERE a.location_id = {qs_value}"
