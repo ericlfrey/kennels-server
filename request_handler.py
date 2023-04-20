@@ -102,7 +102,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         else:  # There is a ? in the path, run the query param functions
             (resource, id, query_params) = parsed
-            if resource == 'animals' and 'location' in query_params[0]:
+            if resource == 'animals':
                 response = get_all_animals(query_params)
 
             # see if the query dictionary has an email key
