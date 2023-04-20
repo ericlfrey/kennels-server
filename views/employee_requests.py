@@ -42,7 +42,7 @@ def get_all_employees():
                                 row['address'], row['location_id'])
 
             location = Location(
-                row['location_id'], row['location_name'], row['location_address'])
+                row['location_id'], row['location_name'], row['location_address'], '')
 
             employee.location = location.__dict__
 
@@ -83,7 +83,8 @@ def get_single_employee(id):
         location = Location(
             data['location_id'],
             data['location_name'],
-            data['location_address']
+            data['location_address'],
+            ''
         )
         animals = get_animals_by_location(data['location_id'])
         employee.location = location.__dict__

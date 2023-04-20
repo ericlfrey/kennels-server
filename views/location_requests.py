@@ -27,10 +27,14 @@ def get_all_locations():
 
         db_cursor.execute("""
         SELECT
-            a.id,
-            a.name,
-            a.address
-        FROM location a
+            l.id,
+            l.name,
+            l.address,
+            COUNT(*) AS animals
+        FROM Animal a
+        JOIN Location l
+            ON l.id = a.location_id
+        GROUP BY l.id
         """)
 
         locations = []
@@ -39,7 +43,8 @@ def get_all_locations():
 
         for row in dataset:
 
-            location = Location(row['id'], row['name'], row['address'])
+            location = Location(row['id'], row['name'],
+                                row['address'], row['animals'])
 
             locations.append(location.__dict__)
 
@@ -64,7 +69,8 @@ def get_single_location(id):
 
         data = db_cursor.fetchone()
 
-        location = Location(data['id'], data['name'], data['address'])
+        location = Location(data['id'], data['name'],
+                            data['address'], '')
 
         employees = get_employees_by_location(id)
         animals = get_animals_by_location(id)

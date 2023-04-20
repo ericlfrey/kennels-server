@@ -113,3 +113,23 @@ SELECT
             a.location_id
         from Animal a
         WHERE a.name LIKE '%pearl%'
+
+SELECT
+    l.id,
+    l.name,
+    l.address,
+    COUNT(*) AS animals
+FROM Animal a
+JOIN Location l
+    ON l.id = a.location_id
+GROUP BY l.id
+
+SELECT
+    l.id,
+    l.name,
+    l.address,
+    COUNT(a.id) animals,
+FROM location l
+JOIN animal a 
+    ON a.location_id = l.id
+GROUP BY l.id

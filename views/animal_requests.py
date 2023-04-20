@@ -82,7 +82,8 @@ def get_all_animals(query_params):
             location = Location(
                 row['location_id'],
                 row['location_name'],
-                row['location_address']
+                row['location_address'],
+                ''
             )
             # Create a Customer instance from the current row
             customer = Customer(
@@ -151,7 +152,8 @@ def get_single_animal(id):
         location = Location(
             data['location_id'],
             data['location_name'],
-            data['location_address']
+            data['location_address'],
+            ''
         )
 
         customer = Customer(
