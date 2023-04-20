@@ -30,6 +30,9 @@ def get_all_animals(query_params):
             if qs_key == "location_id":
                 where_clause = f"WHERE a.location_id = {qs_value}"
 
+            if qs_key == 'status':
+                where_clause = f"WHERE a.status = '{qs_value}'"
+
         sql_to_execute = f"""
         SELECT
             a.id,
